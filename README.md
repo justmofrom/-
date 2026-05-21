@@ -16,7 +16,7 @@
 ### 方式一：本地启动（推荐）
 
 ```bash
-cd /home/runner/work/-/-
+cd /path/to/project
 python3 -m http.server 8000
 ```
 
@@ -24,7 +24,7 @@ python3 -m http.server 8000
 
 ### 方式二：直接打开
 
-直接双击或浏览器打开 `/home/runner/work/-/-/index.html` 也可使用。
+直接双击或浏览器打开 `index.html` 也可使用。
 
 ## 使用说明
 

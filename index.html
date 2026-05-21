@@ -73,8 +73,8 @@
       {"id":"015","turns":[{"role":"user","content":"我忘记密码了，手机号也换了怎么办？"},{"role":"assistant","content":"需要通过身份验证找回。请准备身份证正反面照片和您能记得的账号信息（如收货地址、订单号等），发送到 security@example.com，安全团队24小时内处理并帮您绑定新手机号。"}]}
     ];
 
-    const key = 'qa-annotations-v1';
-    const state = JSON.parse(localStorage.getItem(key) || '{}');
+    const STORAGE_KEY = 'qa-annotations-v1';
+    const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     let index = 0;
 
     const prevBtn = document.getElementById('prevBtn');
@@ -86,15 +86,6 @@
     const label = document.getElementById('label');
     const note = document.getElementById('note');
 
-    function escapeHtml(str) {
-      return str
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
-    }
-
     function saveCurrent() {
       const item = dialogs[index];
       state[item.id] = {
@@ -102,7 +93,7 @@
         note: note.value.trim(),
         updatedAt: new Date().toISOString()
       };
-      localStorage.setItem(key, JSON.stringify(state));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       renderMeta();
     }
 
@@ -114,9 +105,16 @@
 
     function render() {
       const item = dialogs[index];
-      turns.innerHTML = item.turns.map(t =>
-        `<div class="turn ${t.role === 'user' ? 'user' : 'assistant'}"><strong>${t.role === 'user' ? '用户' : '客服'}：</strong>${escapeHtml(t.content)}</div>`
-      ).join('');
+      turns.innerHTML = '';
+      item.turns.forEach(t => {
+        const wrapper = document.createElement('div');
+        wrapper.className = `turn ${t.role === 'user' ? 'user' : 'assistant'}`;
+        const prefix = document.createElement('strong');
+        prefix.textContent = `${t.role === 'user' ? '用户' : '客服'}：`;
+        wrapper.appendChild(prefix);
+        wrapper.append(t.content);
+        turns.appendChild(wrapper);
+      });
 
       const current = state[item.id] || { label: '', note: '' };
       label.value = current.label || '';
@@ -182,10 +180,10 @@
       saveCurrent();
       const rows = buildRows();
       const header = ['index', 'id', 'label', 'note', 'updatedAt', 'user', 'assistant'];
-      const esc = v => `"${String(v || '').replaceAll('"', '""')}"`;
+      const escapeCsvValue = v => `"${String(v || '').replaceAll('"', '""')}"`;
       const lines = [header.join(',')]
-        .concat(rows.map(r => header.map(h => esc(r[h])).join(',')));
-      download('annotations.csv', lines.join('\n'), 'text/csv;charset=utf-8;');
+        .concat(rows.map(r => header.map(h => escapeCsvValue(r[h])).join(',')));
+      download('annotations.csv', '\uFEFF' + lines.join('\n'), 'text/csv;charset=utf-8;');
     });
 
     render();
