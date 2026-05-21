@@ -182,7 +182,7 @@
       saveCurrent();
       const rows = buildRows();
       const header = ['index', 'id', 'label', 'note', 'updatedAt', 'user', 'assistant'];
-      const escapeCsvValue = v => `"${String(v || '').replaceAll('"', '""')}"`;
+      const escapeCsvValue = v => `"${String(v || '').replaceAll('\r', ' ').replaceAll('\n', ' ').replaceAll('"', '""')}"`;
       const lines = [header.join(',')]
         .concat(rows.map(r => header.map(h => escapeCsvValue(r[h])).join(',')));
       download('annotations.csv', '\uFEFF' + lines.join('\n'), 'text/csv;charset=utf-8;');
