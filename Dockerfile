@@ -2,16 +2,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# 复制应用文件
+# Copy application files
 COPY index.html .
 COPY data.json .
 COPY server.js .
+COPY package.json .
 
-# 安装依赖
+# Install dependencies
 RUN npm install --production
 
-# 暴露端口
+# Expose port
 EXPOSE 3000
 
-# 启动服务器
+# Start server
 CMD ["node", "server.js"]

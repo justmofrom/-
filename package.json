@@ -1,7 +1,7 @@
 {
   "name": "customer-service-quality-evaluator",
   "version": "1.0.0",
-  "description": "客服质量评估工具 - 智能客服对话质量评估系统",
+  "description": "Customer Service Quality Evaluation Tool - An intelligent system for evaluating customer service chat quality",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

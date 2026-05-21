@@ -583,7 +583,7 @@
         let evaluations = {};
         let currentIndex = 0;
 
-        // 初始化
+        // Initialize
         async function init() {
             try {
                 const response = await fetch('data.json');
@@ -598,7 +598,7 @@
             }
         }
 
-        // 加载评估数据
+        // Load evaluation data
         function loadEvaluations() {
             const saved = localStorage.getItem('evaluations');
             if (saved) {
@@ -606,17 +606,21 @@
             }
         }
 
-        // 保存评估数据
+        // Save evaluation data
         function saveEvaluations() {
             localStorage.setItem('evaluations', JSON.stringify(evaluations));
             updateProgress();
         }
 
-        // 保存当前评估
+        // Save current evaluation
         function saveEvaluation() {
             const id = conversations[currentIndex].id;
+            // Find the highest-rated active star
+            const activeStars = document.getElementById('ratingStars').querySelectorAll('.star.active');
+            const rating = activeStars.length > 0 ? Math.max(...Array.from(activeStars).map(s => parseInt(s.dataset.rating))) : 0;
+            
             evaluations[id] = {
-                rating: parseInt(document.getElementById('ratingStars').querySelector('.star.active')?.dataset.rating || 0),
+                rating: rating,
                 isAccurate: document.getElementById('isAccurate').checked,
                 isOffTopic: document.getElementById('isOffTopic').checked,
                 hasFabrication: document.getElementById('hasFabrication').checked,
@@ -628,7 +632,7 @@
             showToast('已保存');
         }
 
-        // 渲染对话
+        // Render conversation
         function renderConversation() {
             if (conversations.length === 0) {
                 document.getElementById('messages').innerHTML = '<p style="color: #999;">暂无对话数据</p>';
@@ -649,20 +653,20 @@
                 messagesDiv.appendChild(msgDiv);
             });
 
-            // 加载该对话的评估数据
+            // Load evaluation data for this conversation
             loadEvaluationForm();
             updateConversationInfo();
 
-            // 更新按钮状态
+            // Update button state
             document.getElementById('prevBtn').disabled = currentIndex === 0;
             document.getElementById('nextBtn').disabled = currentIndex === conversations.length - 1;
             
-            // 更新索引显示
+            // Update index display
             document.getElementById('currentIndex').textContent = currentIndex + 1;
             document.getElementById('totalCount').textContent = conversations.length;
         }
 
-        // 加载评估表单
+        // Load evaluation form
         function loadEvaluationForm() {
             const id = conversations[currentIndex].id;
             const eval_ = evaluations[id] || {};
@@ -672,7 +676,7 @@
             document.getElementById('hasFabrication').checked = eval_.hasFabrication || false;
             document.getElementById('comments').value = eval_.comments || '';
 
-            // 加载评分
+            // Load rating
             const stars = document.querySelectorAll('#ratingStars .star');
             stars.forEach(star => star.classList.remove('active'));
             if (eval_.rating) {
@@ -684,7 +688,7 @@
             }
         }
 
-        // 渲染评分星星
+        // Render rating stars
         function renderRatingStars() {
             const starsDiv = document.getElementById('ratingStars');
             starsDiv.innerHTML = '';
@@ -708,7 +712,7 @@
             }
         }
 
-        // 更新对话信息
+        // Update conversation info
         function updateConversationInfo() {
             const id = conversations[currentIndex].id;
             const evaluated = evaluations[id] ? '已评估' : '未评估';
@@ -724,7 +728,7 @@
             }
         }
 
-        // 更新进度条
+        // Update progress bar
         function updateProgress() {
             const evaluated = Object.keys(evaluations).length;
             const total = conversations.length;
@@ -733,7 +737,7 @@
             document.getElementById('evaluatedCount').textContent = evaluated;
         }
 
-        // 上一条
+        // Previous conversation
         function previousConversation() {
             if (currentIndex > 0) {
                 currentIndex--;
@@ -742,7 +746,7 @@
             }
         }
 
-        // 下一条
+        // Next conversation
         function nextConversation() {
             if (currentIndex < conversations.length - 1) {
                 currentIndex++;
@@ -751,14 +755,14 @@
             }
         }
 
-        // 导出结果
+        // Export results
         function exportResults() {
             if (Object.keys(evaluations).length === 0) {
                 showToast('没有可导出的评估数据');
                 return;
             }
 
-            // 显示导出选项对话框
+            // Display export format options dialog
             const modal = document.createElement('div');
             modal.className = 'modal show';
             modal.innerHTML = `
@@ -776,7 +780,7 @@
             document.body.appendChild(modal);
         }
 
-        // 导出 CSV
+        // Export CSV
         function exportCSV() {
             let csv = '对话ID,整体评分,准确无误,存在跑题,存在编造,补充备注,评估时间\n';
 
@@ -802,7 +806,7 @@
             showToast('CSV 文件已导出');
         }
 
-        // 导出 JSON
+        // Export JSON
         function exportJSON() {
             const data = {
                 exportDate: new Date().toISOString(),
