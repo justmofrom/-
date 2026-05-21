@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>客服对话质量标注工具</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>客服对话质量标注工具</h1>
+
+      <section class="panel controls">
+        <label for="fileInput">加载 JSON 文件：</label>
+        <input id="fileInput" type="file" accept=".json,application/json" />
+        <button id="loadSampleBtn" type="button">重新加载示例数据</button>
+      </section>
+
+      <section class="panel nav">
+        <button id="prevBtn" type="button">上一条</button>
+        <span id="progress">0 / 0</span>
+        <button id="nextBtn" type="button">下一条</button>
+      </section>
+
+      <section class="panel conversation">
+        <div><strong>会话 ID：</strong><span id="conversationId">-</span></div>
+        <div class="bubble user">
+          <div class="role">用户消息</div>
+          <div id="userMessage">-</div>
+        </div>
+        <div class="bubble assistant">
+          <div class="role">客服回复</div>
+          <div id="assistantMessage">-</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>质量标签（可多选）</h2>
+        <div id="tagContainer" class="tags"></div>
+      </section>
+
+      <section class="panel">
+        <label for="notes"><strong>备注（可选）</strong></label>
+        <textarea id="notes" rows="4" placeholder="输入备注..."></textarea>
+      </section>
+
+      <section class="panel actions">
+        <button id="saveBtn" type="button">保存当前标注</button>
+        <button id="exportJsonBtn" type="button">导出 JSON</button>
+        <button id="exportCsvBtn" type="button">导出 CSV</button>
+      </section>
+
+      <p id="status" class="status"></p>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
