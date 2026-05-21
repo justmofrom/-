@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  evaluator:
+    build: .
+    container_name: customer-service-evaluator
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - ./data.json:/app/data.json:ro
+    restart: unless-stopped
