@@ -27,8 +27,9 @@ const server = http.createServer((req, res) => {
         fs.readFile(filePath, (err, data) => {
             if (err) {
                 const statusCode = err.code === 'ENOENT' ? 404 : 403;
+                const message = err.code === 'ENOENT' ? 'Not Found' : 'Forbidden';
                 res.writeHead(statusCode);
-                res.end('Not Found');
+                res.end(message);
                 return;
             }
             res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -39,8 +40,9 @@ const server = http.createServer((req, res) => {
         fs.readFile(filePath, (err, data) => {
             if (err) {
                 const statusCode = err.code === 'ENOENT' ? 404 : 403;
+                const message = err.code === 'ENOENT' ? 'Not Found' : 'Forbidden';
                 res.writeHead(statusCode);
-                res.end('Not Found');
+                res.end(message);
                 return;
             }
             res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

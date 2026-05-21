@@ -771,12 +771,23 @@
                         <p>选择您想要的导出格式</p>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn-primary" onclick="this.parentElement.parentElement.remove(); exportCSV()">CSV 格式</button>
-                        <button class="btn-primary" onclick="this.parentElement.parentElement.remove(); exportJSON()">JSON 格式</button>
+                        <button class="btn-primary" id="exportCSVBtn">CSV 格式</button>
+                        <button class="btn-primary" id="exportJSONBtn">JSON 格式</button>
                     </div>
                 </div>
             `;
             document.body.appendChild(modal);
+            
+            // Attach event listeners and clean up modal after selection
+            const cleanup = () => modal.remove();
+            document.getElementById('exportCSVBtn').addEventListener('click', () => {
+                cleanup();
+                exportCSV();
+            });
+            document.getElementById('exportJSONBtn').addEventListener('click', () => {
+                cleanup();
+                exportJSON();
+            });
         }
 
         // Export CSV
