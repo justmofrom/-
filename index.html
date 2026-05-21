@@ -615,12 +615,11 @@
         // Save current evaluation
         function saveEvaluation() {
             const id = conversations[currentIndex].id;
-            // Find the highest-rated active star
-            const activeStars = document.getElementById('ratingStars').querySelectorAll('.star.active');
-            const rating = activeStars.length > 0 ? Math.max(...Array.from(activeStars).map(s => parseInt(s.dataset.rating))) : 0;
+            // The number of active stars equals the rating (stars are filled sequentially)
+            const activeStarsCount = document.getElementById('ratingStars').querySelectorAll('.star.active').length;
             
             evaluations[id] = {
-                rating: rating,
+                rating: activeStarsCount,
                 isAccurate: document.getElementById('isAccurate').checked,
                 isOffTopic: document.getElementById('isOffTopic').checked,
                 hasFabrication: document.getElementById('hasFabrication').checked,
@@ -823,17 +822,17 @@
             showToast('JSON 文件已导出');
         }
 
-        // 显示帮助对话框
+        // Show help modal
         function showHelpModal() {
             document.getElementById('helpModal').classList.add('show');
         }
 
-        // 关闭帮助对话框
+        // Close help modal
         function closeHelpModal() {
             document.getElementById('helpModal').classList.remove('show');
         }
 
-        // 显示统计信息
+        // Show statistics modal
         function showStatsModal() {
             const evaluated = Object.keys(evaluations).length;
             const total = conversations.length;
@@ -846,7 +845,7 @@
                 <p><strong>完成度：</strong> ${percentage}%</p>
             `;
 
-            // 统计评分分布
+            // Calculate rating distribution
             const ratingDist = {};
             for (let i = 1; i <= 5; i++) {
                 ratingDist[i] = 0;
@@ -862,7 +861,7 @@
                 stats += `<p>${i}星: ${ratingDist[i]} 个</p>`;
             }
 
-            // 统计标签
+            // Calculate tag statistics
             let accurateCount = 0, offTopicCount = 0, fabricationCount = 0;
             Object.values(evaluations).forEach(eval_ => {
                 if (eval_.isAccurate) accurateCount++;
@@ -879,12 +878,12 @@
             document.getElementById('statsModal').classList.add('show');
         }
 
-        // 关闭统计对话框
+        // Close statistics modal
         function closeStatsModal() {
             document.getElementById('statsModal').classList.remove('show');
         }
 
-        // 显示提示
+        // Show toast notification
         function showToast(message) {
             const toast = document.createElement('div');
             toast.className = 'toast';
@@ -893,7 +892,7 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // 点击模态外部关闭
+        // Close modal when clicking outside
         document.getElementById('helpModal').addEventListener('click', function(e) {
             if (e.target === this) this.classList.remove('show');
         });
@@ -902,7 +901,7 @@
             if (e.target === this) this.classList.remove('show');
         });
 
-        // 页面加载时初始化
+        // Initialize on page load
         window.addEventListener('load', init);
     </script>
 </body>
