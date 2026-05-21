@@ -6,6 +6,21 @@ const PORT = process.env.PORT || 3000;
 // Allowed origins for CORS (restrict in production)
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['*'];
 
+// Helper function to serve a file with proper error handling
+function serveFile(filePath, contentType, res) {
+    fs.readFile(filePath, (err, data) => {
+        if (err) {
+            const statusCode = err.code === 'ENOENT' ? 404 : 403;
+            const message = err.code === 'ENOENT' ? 'Not Found' : 'Forbidden';
+            res.writeHead(statusCode);
+            res.end(message);
+            return;
+        }
+        res.writeHead(200, { 'Content-Type': contentType + '; charset=utf-8' });
+        res.end(data);
+    });
+}
+
 const server = http.createServer((req, res) => {
     // Handle CORS - configure allowed origins via ALLOWED_ORIGINS env var
     const origin = req.headers.origin || '*';
@@ -23,31 +38,9 @@ const server = http.createServer((req, res) => {
     }
 
     if (req.url === '/' || req.url === '/index.html') {
-        const filePath = path.join(__dirname, 'index.html');
-        fs.readFile(filePath, (err, data) => {
-            if (err) {
-                const statusCode = err.code === 'ENOENT' ? 404 : 403;
-                const message = err.code === 'ENOENT' ? 'Not Found' : 'Forbidden';
-                res.writeHead(statusCode);
-                res.end(message);
-                return;
-            }
-            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-            res.end(data);
-        });
+        serveFile(path.join(__dirname, 'index.html'), 'text/html', res);
     } else if (req.url === '/data.json') {
-        const filePath = path.join(__dirname, 'data.json');
-        fs.readFile(filePath, (err, data) => {
-            if (err) {
-                const statusCode = err.code === 'ENOENT' ? 404 : 403;
-                const message = err.code === 'ENOENT' ? 'Not Found' : 'Forbidden';
-                res.writeHead(statusCode);
-                res.end(message);
-                return;
-            }
-            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(data);
-        });
+        serveFile(path.join(__dirname, 'data.json'), 'application/json', res);
     } else {
         res.writeHead(404);
         res.end('Not Found');

@@ -615,7 +615,9 @@
         // Save current evaluation
         function saveEvaluation() {
             const id = conversations[currentIndex].id;
-            // The number of active stars equals the rating (stars are filled sequentially)
+            // Rating calculation: Since stars are always filled sequentially from 1 to N
+            // (onclick handler adds .active class to all stars <= clicked rating),
+            // the number of active stars equals the rating value
             const rating = document.getElementById('ratingStars').querySelectorAll('.star.active').length;
             
             evaluations[id] = {
@@ -779,13 +781,13 @@
             document.body.appendChild(modal);
             
             // Attach event listeners and clean up modal after selection
-            const cleanup = () => modal.remove();
+            const closeExportModal = () => modal.remove();
             document.getElementById('exportCSVBtn').addEventListener('click', () => {
-                cleanup();
+                closeExportModal();
                 exportCSV();
             });
             document.getElementById('exportJSONBtn').addEventListener('click', () => {
-                cleanup();
+                closeExportModal();
                 exportJSON();
             });
         }
