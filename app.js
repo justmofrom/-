@@ -9,6 +9,14 @@ const QUALITY_TAGS = [
   "✗ Unclear（不清楚）",
   "✓ Complete answer（完整回答）"
 ];
+const EXPORT_HEADERS = [
+  "conversation_id",
+  "user_message",
+  "assistant_response",
+  "quality_tags",
+  "annotation_timestamp",
+  "annotator_notes"
+];
 
 const state = {
   conversations: [],
@@ -163,7 +171,7 @@ function exportJson() {
 
 function escapeCsvValue(value) {
   const text = String(value ?? "");
-  if (text.includes(",") || text.includes("\"") || text.includes("\n")) {
+  if (text.includes(",") || text.includes("\"") || text.includes("\n") || text.includes("\r")) {
     return `"${text.replace(/"/g, "\"\"")}"`;
   }
   return text;
@@ -172,17 +180,9 @@ function escapeCsvValue(value) {
 function exportCsv() {
   saveCurrentAnnotation();
   const rows = buildExportRows();
-  const headers = Object.keys(rows[0] || {
-    conversation_id: "",
-    user_message: "",
-    assistant_response: "",
-    quality_tags: "",
-    annotation_timestamp: "",
-    annotator_notes: ""
-  });
-  const csvLines = [headers.join(",")];
+  const csvLines = [EXPORT_HEADERS.join(",")];
   rows.forEach((row) => {
-    csvLines.push(headers.map((h) => escapeCsvValue(row[h])).join(","));
+    csvLines.push(EXPORT_HEADERS.map((h) => escapeCsvValue(row[h])).join(","));
   });
   downloadFile("annotations.csv", csvLines.join("\n"), "text/csv;charset=utf-8");
   setStatus("已导出 CSV");
