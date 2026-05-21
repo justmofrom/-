@@ -3,11 +3,16 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
+// Allowed origins for CORS (restrict in production)
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['*'];
 
 const server = http.createServer((req, res) => {
-    // Handle CORS - Note: For production, restrict to specific domains
-    // Example: res.setHeader('Access-Control-Allow-Origin', 'https://example.com');
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Handle CORS - configure allowed origins via ALLOWED_ORIGINS env var
+    const origin = req.headers.origin || '*';
+    const allowedOrigin = ALLOWED_ORIGINS.includes('*') ? '*' : 
+                          ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -21,7 +26,8 @@ const server = http.createServer((req, res) => {
         const filePath = path.join(__dirname, 'index.html');
         fs.readFile(filePath, (err, data) => {
             if (err) {
-                res.writeHead(404);
+                const statusCode = err.code === 'ENOENT' ? 404 : 403;
+                res.writeHead(statusCode);
                 res.end('Not Found');
                 return;
             }
@@ -32,7 +38,8 @@ const server = http.createServer((req, res) => {
         const filePath = path.join(__dirname, 'data.json');
         fs.readFile(filePath, (err, data) => {
             if (err) {
-                res.writeHead(404);
+                const statusCode = err.code === 'ENOENT' ? 404 : 403;
+                res.writeHead(statusCode);
                 res.end('Not Found');
                 return;
             }

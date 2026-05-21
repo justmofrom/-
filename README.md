@@ -79,7 +79,7 @@ services:
     environment:
       - NODE_ENV=production
     volumes:
-      - ./data.json:/app/data.json
+      - ./data.json:/app/data.json:ro
 ```
 
 ## 使用指南

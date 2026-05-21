@@ -616,10 +616,10 @@
         function saveEvaluation() {
             const id = conversations[currentIndex].id;
             // The number of active stars equals the rating (stars are filled sequentially)
-            const activeStarsCount = document.getElementById('ratingStars').querySelectorAll('.star.active').length;
+            const rating = document.getElementById('ratingStars').querySelectorAll('.star.active').length;
             
             evaluations[id] = {
-                rating: activeStarsCount,
+                rating: rating,
                 isAccurate: document.getElementById('isAccurate').checked,
                 isOffTopic: document.getElementById('isOffTopic').checked,
                 hasFabrication: document.getElementById('hasFabrication').checked,
