@@ -49,7 +49,7 @@
 
 ```bash
 git clone <repo-url>
-cd -- -
+cd <repository-name>
 ```
 
 ### 2) 运行应用
