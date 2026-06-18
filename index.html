@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客服质量评估工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+            min-height: 600px;
+        }
+
+        .conversation-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .conversation-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .conversation-info {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .messages {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fafafa;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .message.user {
+            background: #e8f0ff;
+            border-left: 4px solid #667eea;
+            margin-left: auto;
+            max-width: 95%;
+        }
+
+        .message.assistant {
+            background: #f0f0f0;
+            border-left: 4px solid #764ba2;
+            max-width: 95%;
+        }
+
+        .message-label {
+            font-weight: 600;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .evaluation-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .eval-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .eval-form {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .form-group label.checkbox-label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            padding: 8px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .form-group label.checkbox-label:hover {
+            background: #efefef;
+        }
+
+        .form-group label.checkbox-label input:checked + span {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .rating-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .rating-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .stars {
+            display: flex;
+            gap: 8px;
+            font-size: 28px;
+        }
+
+        .star {
+            cursor: pointer;
+            color: #ccc;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #ffc107;
+            transform: scale(1.2);
+        }
+
+        .comments-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .comments-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .comments-group textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .footer-controls {
+            display: flex;
+            gap: 10px;
+            padding: 20px 30px;
+            background: #f5f5f5;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .footer-controls button {
+            flex: 1;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e0e0e0;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .status-indicator.evaluated {
+            background: #4caf50;
+        }
+
+        .status-indicator.unevaluated {
+            background: #ccc;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-footer button {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .content {
+                padding: 20px;
+                min-height: auto;
+            }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="header">
+            <h1>客服质量评估工具</h1>
+            <p>评估每条客服回复的质量，提升服务水平</p>
+        </div>
+
+        <div class="content">
+            <div class="conversation-panel">
+                <div class="conversation-title">对话内容</div>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="currentIndex">-</div>
+                        <div class="stat-label">当前对话</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCount">-</div>
+                        <div class="stat-label">总数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="evaluatedCount">0</div>
+                        <div class="stat-label">已评估</div>
+                    </div>
+                </div>
+
+                <div class="conversation-info" id="conversationInfo">
+                    <span class="status-indicator unevaluated" id="statusIndicator"></span>
+                    加载中...
+                </div>
+
+                <div class="messages" id="messages"></div>
+
+                <div class="navigation">
+                    <button class="btn-secondary" id="prevBtn" onclick="previousConversation()">上一条</button>
+                    <button class="btn-secondary" id="nextBtn" onclick="nextConversation()">下一条</button>
+                </div>
+            </div>
+
+            <div class="evaluation-panel">
+                <div class="eval-title">质量评估</div>
+
+                <form class="eval-form" id="evalForm">
+                    <div class="form-group">
+                        <div class="rating-group">
+                            <div class="rating-label">整体评分</div>
+                            <div class="stars" id="ratingStars"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="isAccurate" onchange="saveEvaluation()">
+                            <span>✓ 准确无误</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="isOffTopic" onchange="saveEvaluation()">
+                            <span>✗ 存在跑题</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="hasFabrication" onchange="saveEvaluation()">
+                            <span>✗ 存在编造</span>
+                        </label>
+                    </div>
+
+                    <div class="comments-group">
+                        <label for="comments">补充备注</label>
+                        <textarea id="comments" placeholder="输入任何补充意见或观察..." onchange="saveEvaluation()"></textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer-controls">
+            <button class="btn-secondary" onclick="showHelpModal()">使用说明</button>
+            <button class="btn-secondary" onclick="showStatsModal()">统计信息</button>
+            <button class="btn-success" onclick="exportResults()">导出结果</button>
+        </div>
+    </div>
+
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <div class="modal-header">使用说明</div>
+            <div class="modal-body">
+                <h3 style="margin-top: 0; color: #333;">功能介绍</h3>
+                <p><strong>整体评分：</strong>点击星号给出1-5分的评分，5分最高。</p>
+                <p><strong>准确无误：</strong>勾选表示客服回复内容准确正确。</p>
+                <p><strong>存在跑题：</strong>勾选表示客服回复偏离用户问题。</p>
+                <p><strong>存在编造：</strong>勾选表示客服虚构或编造了信息。</p>
+                <p><strong>补充备注：</strong>输入任何需要记录的补充意见。</p>
+                
+                <h3 style="color: #333;">操作步骤</h3>
+                <ol style="padding-left: 20px; color: #666;">
+                    <li>查看左侧对话内容</li>
+                    <li>在右侧评估表单中给出评分和标签</li>
+                    <li>点击"下一条"浏览下一个对话</li>
+                    <li>完成评估后点击"导出结果"获取评估报告</li>
+                </ol>
+
+                <h3 style="color: #333;">导出说明</h3>
+                <p>导出功能支持两种格式：</p>
+                <ul style="padding-left: 20px; color: #666;">
+                    <li><strong>CSV 格式：</strong>便于在 Excel 等表格软件中查看和分析</li>
+                    <li><strong>JSON 格式：</strong>便于进一步的数据处理和集成</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closeHelpModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="statsModal">
+        <div class="modal-content">
+            <div class="modal-header">统计信息</div>
+            <div class="modal-body" id="statsContent">
+                加载中...
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closeStatsModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let conversations = [];
+        let evaluations = {};
+        let currentIndex = 0;
+
+        // Initialize
+        async function init() {
+            try {
+                const response = await fetch('data.json');
+                conversations = await response.json();
+                loadEvaluations();
+                renderConversation();
+                renderRatingStars();
+                updateProgress();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showToast('数据加载失败，请检查 data.json 文件');
+            }
+        }
+
+        // Load evaluation data
+        function loadEvaluations() {
+            const saved = localStorage.getItem('evaluations');
+            if (saved) {
+                evaluations = JSON.parse(saved);
+            }
+        }
+
+        // Save evaluation data
+        function saveEvaluations() {
+            localStorage.setItem('evaluations', JSON.stringify(evaluations));
+            updateProgress();
+        }
+
+        // Save current evaluation
+        function saveEvaluation() {
+            const id = conversations[currentIndex].id;
+            // Rating calculation: Since stars are always filled sequentially from 1 to N
+            // (onclick handler adds .active class to all stars <= clicked rating),
+            // the number of active stars equals the rating value
+            const rating = document.getElementById('ratingStars').querySelectorAll('.star.active').length;
+            
+            evaluations[id] = {
+                rating: rating,
+                isAccurate: document.getElementById('isAccurate').checked,
+                isOffTopic: document.getElementById('isOffTopic').checked,
+                hasFabrication: document.getElementById('hasFabrication').checked,
+                comments: document.getElementById('comments').value,
+                timestamp: new Date().toISOString()
+            };
+            saveEvaluations();
+            updateConversationInfo();
+            showToast('已保存');
+        }
+
+        // Render conversation
+        function renderConversation() {
+            if (conversations.length === 0) {
+                document.getElementById('messages').innerHTML = '<p style="color: #999;">暂无对话数据</p>';
+                return;
+            }
+
+            const conv = conversations[currentIndex];
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '';
+
+            conv.turns.forEach((turn, index) => {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `message ${turn.role}`;
+                msgDiv.innerHTML = `
+                    <div class="message-label">${turn.role === 'user' ? '用户' : '客服'}</div>
+                    ${turn.content}
+                `;
+                messagesDiv.appendChild(msgDiv);
+            });
+
+            // Load evaluation data for this conversation
+            loadEvaluationForm();
+            updateConversationInfo();
+
+            // Update button state
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex === conversations.length - 1;
+            
+            // Update index display
+            document.getElementById('currentIndex').textContent = currentIndex + 1;
+            document.getElementById('totalCount').textContent = conversations.length;
+        }
+
+        // Load evaluation form
+        function loadEvaluationForm() {
+            const id = conversations[currentIndex].id;
+            const eval_ = evaluations[id] || {};
+
+            document.getElementById('isAccurate').checked = eval_.isAccurate || false;
+            document.getElementById('isOffTopic').checked = eval_.isOffTopic || false;
+            document.getElementById('hasFabrication').checked = eval_.hasFabrication || false;
+            document.getElementById('comments').value = eval_.comments || '';
+
+            // Load rating
+            const stars = document.querySelectorAll('#ratingStars .star');
+            stars.forEach(star => star.classList.remove('active'));
+            if (eval_.rating) {
+                stars.forEach(star => {
+                    if (parseInt(star.dataset.rating) <= eval_.rating) {
+                        star.classList.add('active');
+                    }
+                });
+            }
+        }
+
+        // Render rating stars
+        function renderRatingStars() {
+            const starsDiv = document.getElementById('ratingStars');
+            starsDiv.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('span');
+                star.className = 'star';
+                star.textContent = '★';
+                star.dataset.rating = i;
+                star.onclick = () => {
+                    const stars = document.querySelectorAll('#ratingStars .star');
+                    stars.forEach(s => {
+                        if (parseInt(s.dataset.rating) <= i) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+                    saveEvaluation();
+                };
+                starsDiv.appendChild(star);
+            }
+        }
+
+        // Update conversation info
+        function updateConversationInfo() {
+            const id = conversations[currentIndex].id;
+            const evaluated = evaluations[id] ? '已评估' : '未评估';
+            const indicator = document.getElementById('statusIndicator');
+            const info = document.getElementById('conversationInfo');
+
+            if (evaluations[id]) {
+                indicator.className = 'status-indicator evaluated';
+                info.innerHTML = `<span class="status-indicator evaluated"></span>对话 #${id} - ${evaluated}`;
+            } else {
+                indicator.className = 'status-indicator unevaluated';
+                info.innerHTML = `<span class="status-indicator unevaluated"></span>对话 #${id} - ${evaluated}`;
+            }
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const evaluated = Object.keys(evaluations).length;
+            const total = conversations.length;
+            const progress = total === 0 ? 0 : (evaluated / total) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('evaluatedCount').textContent = evaluated;
+        }
+
+        // Previous conversation
+        function previousConversation() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderConversation();
+                window.scrollTo(0, 0);
+            }
+        }
+
+        // Next conversation
+        function nextConversation() {
+            if (currentIndex < conversations.length - 1) {
+                currentIndex++;
+                renderConversation();
+                window.scrollTo(0, 0);
+            }
+        }
+
+        // Export results
+        function exportResults() {
+            if (Object.keys(evaluations).length === 0) {
+                showToast('没有可导出的评估数据');
+                return;
+            }
+
+            // Display export format options dialog
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">选择导出格式</div>
+                    <div class="modal-body">
+                        <p>选择您想要的导出格式</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-primary" id="exportCSVBtn">CSV 格式</button>
+                        <button class="btn-primary" id="exportJSONBtn">JSON 格式</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Attach event listeners and clean up modal after selection
+            const closeExportModal = () => modal.remove();
+            document.getElementById('exportCSVBtn').addEventListener('click', () => {
+                closeExportModal();
+                exportCSV();
+            });
+            document.getElementById('exportJSONBtn').addEventListener('click', () => {
+                closeExportModal();
+                exportJSON();
+            });
+        }
+
+        // Export CSV
+        function exportCSV() {
+            let csv = '对话ID,整体评分,准确无误,存在跑题,存在编造,补充备注,评估时间\n';
+
+            conversations.forEach(conv => {
+                const eval_ = evaluations[conv.id] || {};
+                const row = [
+                    conv.id,
+                    eval_.rating || '',
+                    eval_.isAccurate ? '是' : '',
+                    eval_.isOffTopic ? '是' : '',
+                    eval_.hasFabrication ? '是' : '',
+                    `"${(eval_.comments || '').replace(/"/g, '""')}"`,
+                    eval_.timestamp || ''
+                ];
+                csv += row.join(',') + '\n';
+            });
+
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `客服质量评估_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            showToast('CSV 文件已导出');
+        }
+
+        // Export JSON
+        function exportJSON() {
+            const data = {
+                exportDate: new Date().toISOString(),
+                totalConversations: conversations.length,
+                evaluatedCount: Object.keys(evaluations).length,
+                evaluations: evaluations
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `客服质量评估_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            showToast('JSON 文件已导出');
+        }
+
+        // Show help modal
+        function showHelpModal() {
+            document.getElementById('helpModal').classList.add('show');
+        }
+
+        // Close help modal
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('show');
+        }
+
+        // Show statistics modal
+        function showStatsModal() {
+            const evaluated = Object.keys(evaluations).length;
+            const total = conversations.length;
+            const percentage = total === 0 ? 0 : ((evaluated / total) * 100).toFixed(1);
+
+            let stats = `
+                <p><strong>总对话数：</strong> ${total}</p>
+                <p><strong>已评估：</strong> ${evaluated}</p>
+                <p><strong>未评估：</strong> ${total - evaluated}</p>
+                <p><strong>完成度：</strong> ${percentage}%</p>
+            `;
+
+            // Calculate rating distribution
+            const ratingDist = {};
+            for (let i = 1; i <= 5; i++) {
+                ratingDist[i] = 0;
+            }
+            Object.values(evaluations).forEach(eval_ => {
+                if (eval_.rating) {
+                    ratingDist[eval_.rating]++;
+                }
+            });
+
+            stats += '<h3 style="color: #333; margin-top: 20px;">评分分布</h3>';
+            for (let i = 1; i <= 5; i++) {
+                stats += `<p>${i}星: ${ratingDist[i]} 个</p>`;
+            }
+
+            // Calculate tag statistics
+            let accurateCount = 0, offTopicCount = 0, fabricationCount = 0;
+            Object.values(evaluations).forEach(eval_ => {
+                if (eval_.isAccurate) accurateCount++;
+                if (eval_.isOffTopic) offTopicCount++;
+                if (eval_.hasFabrication) fabricationCount++;
+            });
+
+            stats += '<h3 style="color: #333; margin-top: 20px;">标签统计</h3>';
+            stats += `<p>准确无误: ${accurateCount} 个</p>`;
+            stats += `<p>存在跑题: ${offTopicCount} 个</p>`;
+            stats += `<p>存在编造: ${fabricationCount} 个</p>`;
+
+            document.getElementById('statsContent').innerHTML = stats;
+            document.getElementById('statsModal').classList.add('show');
+        }
+
+        // Close statistics modal
+        function closeStatsModal() {
+            document.getElementById('statsModal').classList.remove('show');
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('helpModal').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('show');
+        });
+
+        document.getElementById('statsModal').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('show');
+        });
+
+        // Initialize on page load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

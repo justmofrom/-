@@ -1,0 +1,18 @@
+{
+  "name": "customer-service-quality-evaluator",
+  "version": "1.0.0",
+  "description": "Customer Service Quality Evaluation Tool - An intelligent system for evaluating customer service chat quality",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "customer-service",
+    "quality-evaluation",
+    "chatbot",
+    "annotation"
+  ],
+  "author": "",
+  "license": "MIT"
+}
