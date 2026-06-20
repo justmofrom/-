@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>客服对话质量标注工具</title>
+  <style>
+    :root { color-scheme: light; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans CJK SC", sans-serif; background: #f6f8fa; color: #1f2328; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 20px; }
+    .card { background: #fff; border: 1px solid #d0d7de; border-radius: 10px; padding: 16px; }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .spacer { flex: 1; }
+    button { border: 1px solid #d0d7de; background: #f6f8fa; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #eef1f4; }
+    button.primary { background: #2f81f7; color: #fff; border-color: #2f81f7; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .meta { font-size: 14px; color: #57606a; margin: 10px 0; }
+    .turn { border-radius: 8px; padding: 10px 12px; margin: 8px 0; white-space: pre-wrap; line-height: 1.5; }
+    .turn.user { background: #ddf4ff; border: 1px solid #54aeff66; }
+    .turn.assistant { background: #dafbe1; border: 1px solid #3fb95066; }
+    label { font-size: 14px; font-weight: 600; display: block; margin: 10px 0 6px; }
+    select, textarea { width: 100%; box-sizing: border-box; border: 1px solid #d0d7de; border-radius: 6px; padding: 8px; font: inherit; }
+    textarea { min-height: 72px; resize: vertical; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="row">
+        <button id="prevBtn">上一条</button>
+        <button id="nextBtn">下一条</button>
+        <div class="spacer"></div>
+        <button id="exportJsonBtn" class="primary">导出 JSON</button>
+        <button id="exportCsvBtn">导出 CSV</button>
+      </div>
+
+      <div id="meta" class="meta"></div>
+      <div id="turns"></div>
+
+      <label for="label">质量标签</label>
+      <select id="label">
+        <option value="">未标注</option>
+        <option value="准确">准确</option>
+        <option value="跑题">跑题</option>
+        <option value="编造信息">编造信息</option>
+        <option value="不完整">不完整</option>
+        <option value="态度问题">态度问题</option>
+        <option value="其他">其他</option>
+      </select>
+
+      <label for="note">备注（可选）</label>
+      <textarea id="note" placeholder="可填写判定依据或改进建议"></textarea>
+    </div>
+  </div>
+
+  <script>
+    const dialogs = [
+      {"id":"001","turns":[{"role":"user","content":"我三天前买的蓝牙耳机，今天发现左耳没声音，能退款吗？"},{"role":"assistant","content":"非常抱歉给您带来不便。根据我们的售后政策，商品签收后7天内出现质量问题可以申请退款。您的情况符合退款条件，我现在帮您发起退款申请，预计1-3个工作日到账。请问您希望退回原支付方式还是退到账户余额？"}]},
+      {"id":"002","turns":[{"role":"user","content":"我的包裹显示已签收但是我没收到"},{"role":"assistant","content":"您好，这种情况一般是快递员代签了。建议您查看一下门卫处、快递柜或者邻居是否代收。如果确认没有收到，我可以帮您联系快递公司核实派送情况。请问您方便提供一下订单号吗？"}]},
+      {"id":"003","turns":[{"role":"user","content":"为什么我的50元优惠券用不了？"},{"role":"assistant","content":"这张50元优惠券的使用条件是满200元可用，且仅限服装类商品。您当前购物车的商品总金额是188元，还差12元就可以使用了。您可以再选购一件小商品凑单，或者查看是否有其他适用的优惠券。"}]},
+      {"id":"004","turns":[{"role":"user","content":"我收到一条短信说我的账号异地登录了，是真的吗？"},{"role":"assistant","content":"您好，我们系统确实检测到您的账号在异地有登录行为。建议您立即修改密码并开启双重验证。您可以在APP的\"设置-账号安全\"中操作。如果确认不是本人操作，我可以帮您临时冻结账号。"}]},
+      {"id":"005","turns":[{"role":"user","content":"这款笔记本电脑能装PS和PR吗？"},{"role":"assistant","content":"这款笔记本配备了i7-13700H处理器、32GB内存和RTX4060显卡，运行PS和PR完全没问题。4K视频剪辑也能流畅处理。建议您选择512GB以上硬盘版本，因为视频素材比较占空间。"}]},
+      {"id":"006","turns":[{"role":"user","content":"你们客服态度太差了！上次那个人直接挂我电话！"},{"role":"assistant","content":"非常抱歉给您带来了不好的体验，我代表团队向您道歉。我已经记录了您的反馈，会反馈给客服主管。为了表示歉意，我为您的账户补发了一张20元无门槛优惠券。请问您上次的问题解决了吗？我现在可以帮您处理。"}]},
+      {"id":"007","turns":[{"role":"user","content":"我买的衣服颜色跟图片差太多了"},{"role":"assistant","content":"抱歉给您带来困扰。色差问题您可以申请退货退款，不过由于色差属于主观感受问题而非质量问题，退货运费需要您自行承担（约8-12元）。如果您确认退货，我帮您生成退货地址。"}]},
+      {"id":"008","turns":[{"role":"user","content":"我的手机屏幕碎了，还在保修期内能免费修吗？"},{"role":"assistant","content":"很抱歉，屏幕碎裂属于人为损坏，不在保修范围内。不过您可以选择官方维修服务，费用大约300-800元，维修需2-3个工作日。需要我帮您预约吗？"}]},
+      {"id":"009","turns":[{"role":"user","content":"这个空气炸锅和XXX品牌的比哪个好？"},{"role":"assistant","content":"我们这款容量5.5L、1800W功率，支持12种预设菜单和可视窗口。XXX品牌那款4.5L，便宜约100元，也支持预约定时。家庭人口多建议选我们的，预算有限选XXX也不错。"}]},
+      {"id":"010","turns":[{"role":"user","content":"退款怎么还没到账？都过了5天了"},{"role":"assistant","content":"我帮您查了一下，退款3天前已通过审核退回微信支付账户，一般1-5个工作日到账，目前还在正常时间内。如果超过7个工作日仍未到账，请联系微信支付客服查询退款单号RF2024010538。"}]},
+      {"id":"011","turns":[{"role":"user","content":"我的快递已经5天没更新物流了"},{"role":"assistant","content":"您的包裹目前在武汉中转仓，可能因近期暴雨导致物流积压。我帮您催件了，预计还需2-3天。如果超过3天还没到，我们可以帮您申请全额赔付。"}]},
+      {"id":"012","turns":[{"role":"user","content":"这个面霜适合敏感肌吗？"},{"role":"assistant","content":"这款面霜主要成分是神经酰胺和角鲨烷，不含酒精、香精和色素，97%的敏感肌用户测试无不适。不过每个人皮肤不同，建议先买小样试用3-5天确认无过敏再用正装。"}]},
+      {"id":"013","turns":[{"role":"user","content":"618活动什么时候开始？"},{"role":"assistant","content":"今年618将于6月1日开始持续到6月20日，主要有跨店满300减50、品类券最高200元、前1小时限时折扣。5月28日开始预售，付定金可享额外折扣，建议提前加购物车。"}]},
+      {"id":"014","turns":[{"role":"user","content":"收到的商品跟描述完全不一样，图片是皮革的实际是塑料的"},{"role":"assistant","content":"这种情况属于商品与描述严重不符，您可以申请全额退款且运费由商家承担。我帮您操作退货退款并向平台举报该商家虚假宣传。建议保留好照片作为证据。"}]},
+      {"id":"015","turns":[{"role":"user","content":"我忘记密码了，手机号也换了怎么办？"},{"role":"assistant","content":"需要通过身份验证找回。请准备身份证正反面照片和您能记得的账号信息（如收货地址、订单号等），发送到 security@example.com，安全团队24小时内处理并帮您绑定新手机号。"}]}
+    ];
+
+    const STORAGE_KEY = 'customer-service-qa-annotations-v1';
+    const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    let index = 0;
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const exportJsonBtn = document.getElementById('exportJsonBtn');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    const meta = document.getElementById('meta');
+    const turns = document.getElementById('turns');
+    const label = document.getElementById('label');
+    const note = document.getElementById('note');
+
+    function saveCurrent() {
+      const item = dialogs[index];
+      state[item.id] = {
+        label: label.value,
+        note: note.value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderMeta();
+    }
+
+    function renderMeta() {
+      const done = dialogs.filter(d => state[d.id] && state[d.id].label).length;
+      const item = dialogs[index];
+      meta.textContent = `第 ${index + 1} / ${dialogs.length} 条（ID: ${item.id}）｜已标注：${done}/${dialogs.length}`;
+    }
+
+    function render() {
+      const item = dialogs[index];
+      turns.innerHTML = '';
+      item.turns.forEach(t => {
+        const wrapper = document.createElement('div');
+        wrapper.className = `turn ${t.role === 'user' ? 'user' : 'assistant'}`;
+        const prefix = document.createElement('strong');
+        prefix.textContent = `${t.role === 'user' ? '用户' : '客服'}：`;
+        wrapper.appendChild(prefix);
+        wrapper.append(t.content);
+        turns.appendChild(wrapper);
+      });
+
+      const current = state[item.id] || { label: '', note: '' };
+      label.value = current.label || '';
+      note.value = current.note || '';
+
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === dialogs.length - 1;
+      renderMeta();
+    }
+
+    function download(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function buildRows() {
+      return dialogs.map((d, i) => {
+        const ann = state[d.id] || {};
+        const userTurn = d.turns.find(t => t.role === 'user')?.content || '';
+        const assistantTurn = d.turns.find(t => t.role === 'assistant')?.content || '';
+        return {
+          index: i + 1,
+          id: d.id,
+          label: ann.label || '',
+          note: ann.note || '',
+          updatedAt: ann.updatedAt || '',
+          user: userTurn,
+          assistant: assistantTurn
+        };
+      });
+    }
+
+    prevBtn.addEventListener('click', () => {
+      saveCurrent();
+      if (index > 0) {
+        index -= 1;
+        render();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      saveCurrent();
+      if (index < dialogs.length - 1) {
+        index += 1;
+        render();
+      }
+    });
+
+    label.addEventListener('change', saveCurrent);
+    note.addEventListener('input', saveCurrent);
+
+    exportJsonBtn.addEventListener('click', () => {
+      saveCurrent();
+      download('annotations.json', JSON.stringify(buildRows(), null, 2), 'application/json');
+    });
+
+    exportCsvBtn.addEventListener('click', () => {
+      saveCurrent();
+      const rows = buildRows();
+      const header = ['index', 'id', 'label', 'note', 'updatedAt', 'user', 'assistant'];
+      const escapeCsvValue = v => `"${String(v || '').replaceAll('\r', ' ').replaceAll('\n', ' ').replaceAll('"', '""')}"`;
+      const lines = [header.join(',')]
+        .concat(rows.map(r => header.map(h => escapeCsvValue(r[h])).join(',')));
+      download('annotations.csv', '\uFEFF' + lines.join('\n'), 'text/csv;charset=utf-8;');
+    });
+
+    render();
+  </script>
+</body>
+</html>
